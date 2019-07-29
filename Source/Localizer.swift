@@ -33,6 +33,20 @@ public protocol LocalizerType {
     /// - Parameter string: String which will be localized
     /// - Returns: Localized string
     func localized(_ string: String) -> String
+
+    /// Localizes the string, using Rx
+    ///
+    /// - Parameter string: String which will be localized
+    /// - Parameter args: Arguments used to fill the localized string
+    /// - Returns: Localized string
+    func localized(_ string: String, _ args: CVarArg...) -> Driver<String>
+
+    /// Localizes the string, using Rx
+    ///
+    /// - Parameter string: String which will be localized
+    /// - Parameter args: Arguments used to fill the localized string
+    /// - Returns: Localized string
+    func localized(_ string: String, _ args: CVarArg...) -> String
 }
 
 public class Localizer: LocalizerType {
@@ -55,6 +69,15 @@ public class Localizer: LocalizerType {
     
     public func localized(_ string: String) -> String {
         return localizationBundle.value.localizedString(forKey: string, value: "Unlocalized String", table: configuration.value.tableName)
+    }
+
+    public func localized(_ string: String, _ args: CVarArg...) -> Driver<String> {
+        return localizationBundle.asDriver().withLatestFrom(configuration.asDriver()) {
+            String(format: $0.localizedString(forKey: string, value: "Unlocalized String", table: $1.tableName), arguments: args)
+        }
+    }
+    public func localized(_ string: String, _ args: CVarArg...) -> String {
+        return String(format: localizationBundle.value.localizedString(forKey: string, value: "Unlocalized String", table: configuration.value.tableName), arguments: args)
     }
     
     private init() {
